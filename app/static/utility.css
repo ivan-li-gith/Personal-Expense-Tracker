@@ -1,0 +1,144 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9; /* Very light gray background */
+    color: #333; /* Dark gray text for readability */
+}
+
+h1, h2, h3 {
+    color: #444; /* Darker gray for headings */
+}
+
+/* Title Section */
+#title {
+    color: #333; /* Dark gray text for the title */
+    padding: 10px;
+    text-align: center;
+    margin-left: 220px; /* Align the title with the form, considering the sidebar width */
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Sidebar Styles */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+    background-color: #2f3e46; /* Softer muted dark shade for sidebar */
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+#sidebar a {
+    display: block;
+    color: #d1e8e2; /* Light teal for sidebar links */
+    padding: 15px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+#sidebar a:hover {
+    background-color: #354f52; /* Slightly brighter on hover */
+}
+
+/* Main Container */
+#main-container {
+    margin-left: 220px; /* Give space for the sidebar */
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* Left Side (Form Section) */
+#left-side {
+    flex: 1;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    margin-right: 20px;
+}
+
+#left-side h2 {
+    border-bottom: 2px solid #adb5bd; /* Soft gray border */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center; /* Center the heading */
+}
+
+#left-side label {
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px; /* Add space between label and input */
+}
+
+/* Smaller input boxes with a soft background */
+#left-side input[type="text"],
+#left-side input[type="number"],
+#left-side input[type="date"] {
+    width: 100%;
+    max-width: 200px; /* Limit input box width */
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da; /* Light border */
+    border-radius: 4px;
+    background-color: #f8f9fa; /* Light background for input boxes */
+}
+
+#left-side input[type="submit"] {
+    background-color: #577590; /* Soft blue for buttons */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#left-side input[type="submit"]:hover {
+    background-color: #6c757d; /* Darker hover effect */
+}
+
+/* Right Side (Summary Section) */
+#right-side {
+    flex: 1;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05); /* Soft shadow */
+}
+
+#right-side h2 {
+    border-bottom: 2px solid #adb5bd; /* Soft gray for section header */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#right-side ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#right-side ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid #dee2e6; /* Light border for list items */
+}
+
+#right-side p {
+    color: #444;
+}
+
+/* Summary subheadings */
+#right-side h3 {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #444;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Splitter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='utility.css') }}">
+
+</head>
+<body>
+    <div id="title">
+        <h1>Utility Divider</h1>
+    </div>
+
+    <div id="sidebar">
+        <a href="{{url_for('routes.home')}}">Dashboard</a>
+        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('routes.add_gas')}}">Gas</a>
+    </div>
+
+    <div id="main-container">
+
+        <div id="left-side">
+            <div id="form-section">
+                <h2>Add Utility</h2>
+                <form method="post">
+                    <!-- General month input -->
+                    <label for="month">Billing Month:</label>
+                    <input type="text" id="month" name="month" required><br><br>
+
+                    <!-- Electric section -->
+                    <h3>Electric</h3>
+                    <label for="electric">Cost:</label>
+                    <input type="number" step="0.01" id="electric" name="electric" required><br>
+                    <label for="electric_start_date">Start Date:</label>
+                    <input type="date" id="electric_start_date" name="electric_start_date" required><br>
+                    <label for="electric_end_date">End Date:</label>
+                    <input type="date" id="electric_end_date" name="electric_end_date" required><br>
+
+                    <!-- Water section -->
+                    <h3>Water</h3>
+                    <label for="water">Cost:</label>
+                    <input type="number" step="0.01" id="water" name="water" required><br>
+                    <label for="electric_start_date">Start Date:</label>
+                    <input type="date" id="water_start_date" name="water_start_date" required><br>
+                    <label for="water_end_date">End Date:</label>
+                    <input type="date" id="water_end_date" name="water_end_date" required><br>
+
+
+                    <!-- Internet section -->
+                    <h3>Internet</h3>
+                    <label for="internet">Cost:</label>
+                    <input type="number" step="0.01" id="internet" name="internet" required><br>
+                    <label for="internet_start_date">Start Date:</label>
+                    <input type="date" id="internet_start_date" name="internet_start_date" required><br>
+                    <label for="internet_end_date">End Date:</label>
+                    <input type="date" id="internet_end_date" name="internet_end_date" required><br>
+
+
+                    <h3>Household Items</h3>
+                    <label for="household_items">Cost:</label>
+                    <input type="number" step="0.01" id="household_items" name="household_items"><br>
+
+                    <label for="other_items">Item:</label>
+                    <input type="text" id="other_items" name="other_items"><br>
+
+                    <input type="submit" value="Calculate">
+                </form>
+            </div>
+        </div>
+
+        <div id="right-side">
+            <div id="summary">
+                <h2>Summary</h2>
+                    {% if summary %}
+                    <!-- Utility Costs Summary -->
+                    <h3>Utility Costs</h3>
+                    <ul>
+                        <li>Electric: ${{ summary.electric }}</li>
+                        <li>Water: ${{ summary.water }}</li>
+                        <li>Internet: ${{ summary.internet }}</li>
+                        <li>Household Items: ${{ summary.household_items }}</li>
+                        <li>Total: ${{ summary.total_cost }}</li>
+                    </ul>
+
+                    <!-- Amount Each Roommate Owes -->
+                    <h3>Amount Each Roommate Owes</h3>
+                    <ul>
+                        <li>Ava owes: ${{ summary.ava_owes }}</li>
+                        <li>Jess owes: ${{ summary.jess_owes }}</li>
+                        <li>Annica owes: ${{ summary.annica_owes }}</li>
+                        <li>April owes: ${{ summary.april_owes }}</li>
+                    </ul>
+                    {% else %}
+                    <p>No utility bill has been submitted yet.</p>
+                    {% endif %}
+
+                    <!-- <h3>Previous Utilities</h3>
+                    {% if utilities %}
+                    <ul>
+                        {% for utility in utilities %}
+                        <li>Billing Period (Electric): {{ utility.electric_start_date }} - {{ utility.electric_end_date }} | Electric: ${{ utility.electric }}, Water: ${{ utility.water }}, Internet: ${{ utility.internet }}, Household Items: ${{ utility.household_item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p>No utilities found.</p>
+                    {% endif %} -->
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

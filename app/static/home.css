@@ -1,0 +1,47 @@
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9; /* Very light gray background */
+    color: #333; /* Dark gray text for readability */
+}
+
+h1, h2, h3 {
+    color: #444; /* Darker gray for headings */
+}
+
+/* Title Section */
+#title {
+    color: #333; /* Dark gray text for the title */
+    padding: 20px;
+    text-align: center;
+    margin-left: 220px; /* Align the title with the form, considering the sidebar width */
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Sidebar Styles (if used) */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+    background-color: #2f3e46; /* Softer muted dark shade for sidebar */
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+#sidebar a {
+    display: block;
+    color: #d1e8e2; /* Light teal for sidebar links */
+    padding: 15px;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+#sidebar a:hover {
+    background-color: #354f52; /* Slightly brighter on hover */
+}

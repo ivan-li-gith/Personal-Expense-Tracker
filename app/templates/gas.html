@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gas.css') }}">
+
+</head>
+<body>
+    <div id="title">
+        <h1>Gas Divider</h1>
+    </div>
+
+    <div id="sidebar">
+        <a href="{{url_for('routes.home')}}">Dashboard</a>
+        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('routes.add_gas')}}">Gas</a>
+    </div>
+
+
+    <form id="gasForm" method="POST" action="{{url_for('routes.add_gas')}}">
+        <!-- tr = table row/ th = table header/ td = table data/ thead = table head/ tbody = table body -->
+        <div id="table">
+            <table id="gasTable">
+                <!-- table header -->
+                <thead>
+                    <tr>
+                        <th>Station</th>
+                        <th>Price</th>
+                        <th>Date</th>
+                        <th>CC Used</th>
+                    </tr>
+                </thead>
+
+                <!-- table body -->
+                <tbody>
+                    <!-- where table rows are going to be dynamically added -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- br is a new line -->
+        <br>
+        <button type="button" onclick="addRow()">Add Entry</button>
+
+        <!-- having the type as submit allows it to send data to the Flask backend -->
+        <button type="submit">Calculate</button>
+
+    </form>
+
+    <script>
+        function addRow(){
+            // to access the table and to allow new rows to be inserted
+            const table = document.getElementById('gasTable').getElementsByTagName("tbody")[0];
+            const newRow = table.insertRow();
+
+            // creating the columns of the newly inserted row
+            const stationCell = newRow.insertCell(0);
+            const priceCell = newRow.insertCell(1);
+            const dateCell = newRow.insertCell(2);
+            const cardCell = newRow.insertCell(3);
+            const actionCell = newRow.insertCell(4);
+
+            // placing input fields for each of the columns created
+            stationCell.innerHTML = `<input type="text" name="station" placeholder="Gas Station">`;
+            priceCell.innerHTML = `<input type="number" name="price" placeholder="Price">`;
+            dateCell.innerHTML = `<input type="date" name="date">`;
+            cardCell.innerHTML = `<input type="text" name="card" placeholder="Card Used">`;
+
+            // to access the deleteRow function whenever the button is clicked
+            actionCell.innerHTML = `<span class="delete-row" onclick="deleteRow(this)">X</span>`;
+        }
+
+        function deleteRow(element) {
+            // element is the X button 
+            // element.parentElement is the table data and element.parentElement.parentElement is the table row 
+            const row = element.parentElement.parentElement;
+            row.remove();
+        }
+    </script>
+
+    <div id="summary">
+        <h2>Gas Expense Calculation</h2>
+
+        <p>Total Price: ${{total_price}}</p>
+        <p>Split Price: ${{split_price}}</p>
+
+    </div>
+    
+</body>
+</html>

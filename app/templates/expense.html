@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='expense.css') }}">
+
+</head>
+<body>
+    <div id="title">
+        <h1>Expense Tracker</h1>
+    </div>
+
+    <div id="sidebar">
+        <a href="{{url_for('routes.home')}}">Dashboard</a>
+        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('routes.add_gas')}}">Gas</a>
+    </div>
+
+    <form id="expense_form" method="POST" action="{{ url_for('routes.add_expense')}}">
+        <table id="expense_table">
+            <thead>
+                <tr>
+                    <td>Description</td>
+                    <td>Price</td>
+                    <td>Date</td>
+                    <td>CC Used</td>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            </tbody>
+        </table>
+
+        
+        <br>
+        <button type="button" onclick="addRow()">Add Entry</button>
+        <button type="submit">Calculate</button>
+    </form>
+
+
+
+    <script>
+        function addRow(){
+            // to access the table and to allow new rows to be inserted
+            const table = document.getElementById('expense_table').getElementsByTagName("tbody")[0];
+            const newRow = table.insertRow();
+
+            // creating the columns of the newly inserted row
+            const descriptionCell = newRow.insertCell(0);
+            const priceCell = newRow.insertCell(1);
+            const dateCell = newRow.insertCell(2);
+            const cardCell = newRow.insertCell(3);
+            const actionCell = newRow.insertCell(4);
+
+            // placing input fields for each of the columns created
+            descriptionCell.innerHTML = `<input type="text" name="description" placeholder="Gas Station">`;
+            priceCell.innerHTML = `<input type="number" name="price" placeholder="Gas Station">`;
+            dateCell.innerHTML = `<input type="date" name="date">`;
+            cardCell.innerHTML = `<input type="text" name="card" placeholder="Gas Station">`;
+
+            // to access the deleteRow function whenever the button is clicked
+            actionCell.innerHTML = `<span class="delete-row" onclick="deleteRow(this)">X</span>`;
+        }
+
+        function deleteRow(element) {
+            // element is the X button 
+            // element.parentElement is the table data and element.parentElement.parentElement is the table row 
+            const row = element.parentElement.parentElement;
+            row.remove();
+        }
+
+    </script>
+
+    <div id="summary">
+        <h2>Expenses Calculation</h2>
+
+        <p>Total Price: ${{total_spending}}</p>
+
+
+    </div>
+
+
+
+
+
+    
+    
+</body>
+</html>
