@@ -2,13 +2,63 @@ from flask import Blueprint, render_template, request, redirect, url_for
 from app.models import Utility, Expense, Gas
 from app import db
 from datetime import datetime
+import matplotlib.pyplot as plt
+import io
+import base64
+import matplotlib.dates as mdates
 
 #creating a blueprint named routes
 bp = Blueprint('routes', __name__)
 
 @bp.route('/')
 def home():
-    return render_template('home.html')
+
+    # Collecting data from each database
+
+    # # Utility database
+    # utility_data = Utility.query.all()
+    # electric = [utility.electric for utility in utility_data]
+
+
+    current_month = datetime.now().month
+    selected_month = request.form.get('month', current_month)
+
+    # Expense database
+    expense_data = Expense.query.filter(db.extract('month', Expense.date) == int(selected_month)).all()
+    expense_prices = [expense.price for expense in expense_data]
+    expense_dates = [expense.date for expense in expense_data]
+
+
+    # reason why we zip and sort together is to ensure that the price is associated with the correct date
+    # if we just sorted the lists as is the price would not match with the correct date
+    sorted_expenses = sorted(zip(expense_dates, expense_prices), key=lambda x: x[0])  # Sort by date
+    expense_dates, expense_prices = zip(*sorted_expenses)  # Unzip sorted data
+
+    # Plotting expense data
+
+    # creates a figure and axis
+    fig, ax = plt.subplots()
+    # dates = x axis and price = y axis. marker linestyle and color is just to represent what the plots would look like 
+    # ax.scatter(expense_dates, expense_prices, color='g')
+    ax.plot(expense_dates, expense_prices, marker='o', linestyle='-', color='g')
+
+    # Format dates to avoid overlap, rotate them and display as 'MMM dd'
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))  # E.g., 'Sep 01'
+    ax.xaxis.set_major_locator(mdates.DayLocator())  # Show every day
+    plt.xticks(rotation=45, ha='right')  # Rotate x-axis labels to make them readable
+
+    ax.set_title(f'Expenses for {datetime.now().strftime("%B")} (up to today)')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Price')
+    # creates a binary stream of the data and then saves that binary stream into png form
+    expense_img = io.BytesIO()
+    plt.savefig(expense_img, format='png')
+    expense_img.seek(0)
+    # converts binary data into a string 
+    expense_plot_url = base64.b64encode(expense_img.getvalue()).decode()
+    plt.close
+
+    return render_template('home.html', expense_plot_url=expense_plot_url, selected_month=selected_month)
 
 @bp.route('/utilities', methods=['GET', 'POST'])
 def add_utilities():
