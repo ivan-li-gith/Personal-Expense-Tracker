@@ -4,25 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Expense Tracker</title>
-    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}"> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script> <!-- To add the data labels for the pie chart -->
 </head>
 <body>
     <div id="title">
         <h1>Personal Expense Tracker</h1>
     </div>
 
-    <!-- <div id="sidebar">
+    <div id="sidebar">
         <a href="{{url_for('routes.home')}}">Dashboard</a>
         <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
         <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
         <a href="{{url_for('routes.add_gas')}}">Gas</a>
         <a href="{{url_for('routes.add_gas')}}">Stock Tracker</a>
-    </div> -->
+    </div>
 
     <div id="dashboard">
         <h1>Spending Dashboard</h1>
 
-        <!-- Month Selector Form -->
         <form method="POST" action="{{ url_for('routes.home') }}">
             <label for="month">Select Month:</label>
             <select name="month" id="month">
@@ -42,11 +43,253 @@
             <button type="submit">Filter</button>
         </form>
 
-        <!-- Expenses Graph -->
-        <div class="chart">
-            <img src="data:image/png;base64,{{ expense_plot_url }}" alt="Expenses">
+        <div class="gas_analysis">
+            <h3>Gas Spending By Month</h3>
+            <canvas id="gasChart"></canvas>
         </div>
+
+        <div class="utility_analysis">
+            <h3>Utilities</h3>
+            <canvas id="utilityChart"></canvas>
+        </div>
+
+        <div class="expense_analysis">
+            <h3>Expenses</h3>
+            <canvas id="expenseChart"></canvas>
+        </div>
+
+
     </div>
 
+    <script>
+        // Gas Bar Chart
+
+        // Checking to see if the arrays are being passed from Flask to JS
+        // Ignore the red line errors VS Code for some reason thinks its an error. Code works fine with it
+        // console.log("Month Labels:", {{ month_labels | tojson }});
+        // console.log("Total Spending:", {{ total_spending | tojson }});
+
+        // Getting data from Flask end
+        const monthLabels = {{ month_labels | tojson }};
+        const totalSpending = {{ total_spending | tojson }};
+
+        // Both should be arrays. Reason why the spending wasnt lining up with the month because the type was not an array
+        // console.log(typeof totalSpending);  
+        // console.log(typeof monthLabels);  
+
+        // Drawing the 2d chart 
+        const gasChartLocation = document.getElementById('gasChart').getContext('2d');
+        const gasChart = new Chart(gasChartLocation, {
+            type: 'bar',    // Setting chart type as barchart
+            data: {
+                labels: monthLabels,  // X axis labels
+                datasets: [{
+                    label: 'Gas Spending',
+                    data: totalSpending,    // Y axis data 
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    barThickness: 40,    
+                    maxBarThickness: 50
+                }]
+            },
+            options: {      // Configuring how the chart looks and behaves
+                scales:{    // Configuring X and Y axes
+                    y: {
+                        beginAtZero: true,  // To ensure the Y-axis starts at 0
+                        title: {
+                            display: true,
+                            text: 'Cost'  
+                        }                    
+                    },
+                    x: {
+                        ticks: {
+                            autoSkip: false,    // To ensure that no labels are missed and displayed
+                            maxRotation: 45,    // Rotating the words to easier readability 
+                            minRotation: 45
+                        },
+                        title: {
+                            display: true,
+                            text: 'Month'  
+                        }     
+                    }
+                },
+                plugins: {      // Configuring the interactions and appearance
+                    legend:{    
+                        display: false      // Don't want a legend
+                    },
+                    tooltip:{   // Allows it show information whenever you hover 
+                        displayColors: false,       // Disable colored box in tooltip message
+                        callbacks:{     // Defines how the tooltip looks and behaves
+                            label: function(data){    
+                                const currentMonthValue = data.raw || 0;      // data.raw refers to the raw value of where it is being hovered over. 0 if it is null/ undefined
+                                const previousMonthValue = data.dataset.data[data.dataIndex - 1] || 0;
+
+                                // Calculates the percent difference from the previous month and displays if there is an increase/decrease in spending from previous month
+                                let percentChangeStr = '';
+                                if (previousMonthValue > 0){
+                                    const percentChange = ((currentMonthValue - previousMonthValue) / previousMonthValue) * 100;
+                                    if(percentChange > 0){
+                                        percentChangeStr = `Spending Increased By: ${percentChange.toFixed(2)}%`;
+                                    }else{
+                                        percentChangeStr = `Spending Decreased By: ${percentChange.toFixed(2)}%`;
+                                    }
+                                }else{
+                                    percentChangeStr = 'No Previous Month Data';
+                                }
+
+                                // return `$${currentMonthValue}\n${percentChangeStr}`;
+                                return [`$${currentMonthValue}`, percentChangeStr];     // So that the messages are in 2 lines instead of 1
+                            }
+                        }
+                    }
+                },
+                responsive: true, // Makes the chart responsive to container size
+                maintainAspectRatio: false, // Allows flexibility in chart sizing
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                barThickness: 'flex'
+            }
+        });
+
+
+        // ------------------------------------------------------------------------------------------------------------------------------------------------
+        // Utility Bar Chart
+
+        // console.log({{pie_chart_labels | tojson}});
+        // console.log({{pie_chart_values | tojson}});
+
+        const utilityLabels = {{ pie_chart_labels | tojson }};
+        const utilityValues = {{ pie_chart_values | tojson }};
+
+        // console.log(typeof pieLabels);
+        // console.log(typeof pieValues);
+
+        const utilityChartLocation = document.getElementById('utilityChart').getContext('2d');
+        const utiltityChart = new Chart(utilityChartLocation, {
+            type: 'pie',
+            data: {
+                labels: utilityLabels,
+                datasets: [{
+                    label: 'Utilities Breakdown',
+                    data: utilityValues,
+                    backgroundColor: ['#ff9999', '#66b3ff', '#99ff99'],  
+                    borderWidth: 2,
+                    hoverOffset: 4      // To make it look like it is moving out of the chart as you hover over it
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    datalabels:{        
+                        color: '#000',
+                        display: true,
+                        // Grabs the label from the array at an index and displays it on the chart
+                        formatter: function(value, context){    // value is data value (price) and context is basically all the other data you can access
+                            return context.chart.data.labels[context.dataIndex];    // .chart to access the chart, .data to the data, .labels to refer to the labels on the chart
+                        },
+                        font: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        anchor: 'center',
+                        align: 'center',
+                    },
+                    tooltip: {
+                        displayColors: false,
+                        callbacks: {
+                            label: function(data){
+                                const value = data.raw || 0.0;
+                                return `$${value.toFixed(2)}`;      // Display the utility cost
+                            },
+                            title: function(){
+                                return '';      // To get rid of the title part of the tooltip message because it seemed redundant to display the utility name 2x
+                            }
+                        }
+                    }
+                },
+
+            },
+            plugins: [ChartDataLabels]      // ChartDataLabels is a plugin that lets you to place labels directly on the chart  
+        });
+
+        // ------------------------------------------------------------------------------------------------------------------------------------------------
+        // Expense Line Chart
+
+        const expenseDates = {{ expense_date_labels | tojson }};
+        const expenseValues = {{ expense_total_values | tojson }};
+        const expenseBreakdown = {{ expense_breakdown | tojson }};
+
+        console.log(expenseDates);
+        console.log(expenseValues);
+        console.log(expenseBreakdown);
+        console.log(typeof expenseValues);
+        console.log(typeof expenseValues);
+        console.log(typeof expenseBreakdown);
+
+
+        const expenseChartLocation = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(expenseChartLocation, {
+            type: 'line',
+            data: {
+                labels: expenseDates,
+                datasets: [{
+                    label: 'Expenses',
+                    data: expenseValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false,  // Do not fill under the line
+                    tension: 0.1  // Controls the curve of the line (0 is straight, 1 is curved)
+                }]
+            },
+
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,   
+                        title: {
+                            display: true,
+                            text: 'Expenses'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {                        
+                        displayColors: false,
+                        callbacks: {
+                            title: function(data){
+                                return '';
+                            },
+                            label: function(data){
+                                const value = data.raw || 0.0;
+                                return 'Total: $' + value.toFixed(2);      // Display the utility cost
+                            },
+                            afterLabel: function(data){     // Displays what items were bought and the costs
+                                let breakdown = expenseBreakdown[data.dataIndex]        
+                                return breakdown.join('\n');
+                            }
+                        }
+                    }
+                },
+
+            }
+        });
+    </script>
 </body>
 </html>
