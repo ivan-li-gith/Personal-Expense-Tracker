@@ -6,7 +6,7 @@
     <title>Personal Expense Tracker</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script> <!-- To add the data labels for the pie chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>        <!-- To add the data labels for the pie chart -->
 </head>
 <body>
     <div id="title">
@@ -24,25 +24,6 @@
     <div id="dashboard">
         <h1>Spending Dashboard</h1>
 
-        <form method="POST" action="{{ url_for('routes.home') }}">
-            <label for="month">Select Month:</label>
-            <select name="month" id="month">
-                <option value="1" {% if selected_month == 1 %}selected{% endif %}>January</option>
-                <option value="2" {% if selected_month == 2 %}selected{% endif %}>February</option>
-                <option value="3" {% if selected_month == 3 %}selected{% endif %}>March</option>
-                <option value="4" {% if selected_month == 4 %}selected{% endif %}>April</option>
-                <option value="5" {% if selected_month == 5 %}selected{% endif %}>May</option>
-                <option value="6" {% if selected_month == 6 %}selected{% endif %}>June</option>
-                <option value="7" {% if selected_month == 7 %}selected{% endif %}>July</option>
-                <option value="8" {% if selected_month == 8 %}selected{% endif %}>August</option>
-                <option value="9" {% if selected_month == 9 %}selected{% endif %}>September</option>
-                <option value="10" {% if selected_month == 10 %}selected{% endif %}>October</option>
-                <option value="11" {% if selected_month == 11 %}selected{% endif %}>November</option>
-                <option value="12" {% if selected_month == 12 %}selected{% endif %}>December</option>
-            </select>
-            <button type="submit">Filter</button>
-        </form>
-
         <div class="gas_analysis">
             <h3>Gas Spending By Month</h3>
             <canvas id="gasChart"></canvas>
@@ -50,42 +31,44 @@
 
         <div class="utility_analysis">
             <h3>Utilities</h3>
+            <button id="prevUtilityMonth">←</button>
+            <span id="displayMonth">{{month_names[selected_month - 1]}}</span>
+            <button id="nextUtilityMonth">→</button>
             <canvas id="utilityChart"></canvas>
         </div>
 
         <div class="expense_analysis">
             <h3>Expenses</h3>
+            <button id="prevExpenseMonth">←</button>
+            <span id="displayMonth">{{month_names[selected_month - 1]}}</span>
+            <button id="nextExpenseMonth">→</button>
             <canvas id="expenseChart"></canvas>
         </div>
-
-
     </div>
 
     <script>
-        // Gas Bar Chart
+        // JS Code Gas Bar Chart
 
-        // Checking to see if the arrays are being passed from Flask to JS
+        // Getting Gas data from Flask end
         // Ignore the red line errors VS Code for some reason thinks its an error. Code works fine with it
-        // console.log("Month Labels:", {{ month_labels | tojson }});
-        // console.log("Total Spending:", {{ total_spending | tojson }});
+        const gasMonthLabels = {{ gas_month_labels | tojson }};
+        const gasTotalSpending = {{ gas_total_spending | tojson }};
 
-        // Getting data from Flask end
-        const monthLabels = {{ month_labels | tojson }};
-        const totalSpending = {{ total_spending | tojson }};
+        // Debugging. Both variables should be arrays. Reason why the spending wasn't lining up with the month because the type was not an array
+        // console.log("Gas Month Labels:", gasMonthLabels);
+        // console.log("Gas Total Spending:", gasTotalSpending);
+        // console.log(typeof gasMonthLabels);  
+        // console.log(typeof gasTotalSpending);  
 
-        // Both should be arrays. Reason why the spending wasnt lining up with the month because the type was not an array
-        // console.log(typeof totalSpending);  
-        // console.log(typeof monthLabels);  
-
-        // Drawing the 2d chart 
+        // Making bar chart for gas 
         const gasChartLocation = document.getElementById('gasChart').getContext('2d');
         const gasChart = new Chart(gasChartLocation, {
             type: 'bar',    // Setting chart type as barchart
             data: {
-                labels: monthLabels,  // X axis labels
+                labels: gasMonthLabels,  // X axis labels
                 datasets: [{
                     label: 'Gas Spending',
-                    data: totalSpending,    // Y axis data 
+                    data: gasTotalSpending,    // Y axis data 
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1,
@@ -138,7 +121,6 @@
                                     percentChangeStr = 'No Previous Month Data';
                                 }
 
-                                // return `$${currentMonthValue}\n${percentChangeStr}`;
                                 return [`$${currentMonthValue}`, percentChangeStr];     // So that the messages are in 2 lines instead of 1
                             }
                         }
@@ -156,19 +138,23 @@
             }
         });
 
-
-        // ------------------------------------------------------------------------------------------------------------------------------------------------
+        // --------------------------------------------------------------------------------------------------------------------------------------------------------------------
         // Utility Bar Chart
 
-        // console.log({{pie_chart_labels | tojson}});
-        // console.log({{pie_chart_values | tojson}});
-
+        // Grabbing Utility data from Flask end
         const utilityLabels = {{ pie_chart_labels | tojson }};
         const utilityValues = {{ pie_chart_values | tojson }};
+        let selectedMonth = {{ selected_month }};
+        const totalMonths = 12;
 
-        // console.log(typeof pieLabels);
-        // console.log(typeof pieValues);
+        // For debugging
+        // console.log(typeof utilityLabels);
+        // console.log(typeof utilityValues);
+        // console.log(utilityLabels);
+        // console.log(utilityValues);
+        // console.log(selectedMonth);
 
+        // Making pie chart for utilities
         const utilityChartLocation = document.getElementById('utilityChart').getContext('2d');
         const utiltityChart = new Chart(utilityChartLocation, {
             type: 'pie',
@@ -217,6 +203,22 @@
 
             },
             plugins: [ChartDataLabels]      // ChartDataLabels is a plugin that lets you to place labels directly on the chart  
+        });
+
+        // Handles the functionality of the month selector for left arrow key
+        document.getElementById('prevUtilityMonth').addEventListener('click', function(){
+            // int of January is 1
+            // Whenever the back button is pressed it is going to go to the previous month 
+            // If January and I press the back button it is going set selectedMonth to 12 which is December. Basically it allows for it to circle back
+            selectedMonth = selectedMonth > 1 ? selectedMonth - 1 : totalMonths;    
+            window.location.href = `/?month=${selectedMonth}`;      // Creates a new URL for the page to navigate to based on the selected month and uses data from that selected month     
+        });
+
+        // Handles the functionality of the month selector for right arrow key
+        document.getElementById('nextUtilityMonth').addEventListener('click', function(){
+            // If December and I press the go forward button it is going set selectedMonth to 1 which is January
+            selectedMonth = selectedMonth < totalMonths ? selectedMonth + 1 : 1;    
+            window.location.href = `/?month=${selectedMonth}`;       
         });
 
         // ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -290,6 +292,44 @@
 
             }
         });
+
+        // Handles the functionality of the month selector for left arrow key
+        document.getElementById('prevExpenseMonth').addEventListener('click', function(){
+            // int of January is 1
+            // Whenever the back button is pressed it is going to go to the previous month 
+            // If January and I press the back button it is going set selectedMonth to 12 which is December. Basically it allows for it to circle back
+            selectedMonth = selectedMonth > 1 ? selectedMonth - 1 : totalMonths;    
+            // window.location.href = `/?month=${selectedMonth}`;      // Creates a new URL for the page to navigate to based on the selected month and uses data from that selected month 
+            getExpenseData(selectedMonth);
+        });
+
+        // Handles the functionality of the month selector for right arrow key
+        document.getElementById('nextExpenseMonth').addEventListener('click', function(){
+            // If December and I press the go forward button it is going set selectedMonth to 1 which is January
+            selectedMonth = selectedMonth < totalMonths ? selectedMonth + 1 : 1;    
+            // window.location.href = `/?month=${selectedMonth}`;       
+            getExpenseData(selectedMonth);
+        });
+
+        // To get the charts to update whenever a different month is selected without having the page refresh you will send a AJAX request to the route to get the data for that month
+        function getExpenseData(selectedMonth){
+            fetch(`/redraw_expense_chart?month=${selectedMonth}`)       // Sends a AJAX request to / route for the selected month
+                .then(response => response.json())        // response is the raw data that is converted to JSON
+                .then(data => {
+                    updateExpenseChart(data.expense_date_labels, data.expense_total_values, data.expense_breakdown);        // data contains all the information for the selected month and is passed to update the chart
+                });
+        }
+
+        // Redraws the chart with the data from the selected month  
+        function updateExpenseChart(dates, prices, breakdown){
+            expenseChart.data.labels = dates;       // Updating the X axis
+            expenseChart.data.datasets[0].data = prices;        // Updating the Y axis. [0] because datasets is an array. There is only 1 entry in that array
+            expenseChart.options.plugins.tooltip.callbacks.afterLabel = function(data) {     // Updating the tooltip message 
+                let breakdownData = breakdown[data.dataIndex];
+                return breakdownData.join('\n');
+            };
+            expenseChart.update();      // Redraws the chart with updated data
+        }
     </script>
 </body>
 </html>
