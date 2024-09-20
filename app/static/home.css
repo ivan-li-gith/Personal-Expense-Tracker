@@ -1,14 +1,129 @@
-canvas#gasChart {
-    max-width: 600px;
-    max-height: 400px;
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f9f9f9;
+    color: #333;
 }
 
-canvas#utilityChart {
-    max-width: 600px;
-    max-height: 400px;
+h1, h2, h3 {
+    color: #444;
 }
 
-canvas#expenseChart {
-    max-width: 600px;
-    max-height: 400px;
+/* Title Section */
+#title {
+    color: #333;
+    padding: 20px;
+    text-align: center;
+    margin-left: 220px;
+    font-size: 28px; /* Increased title size */
+    font-weight: bold;
+    background-color: #edf2f4;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* Sidebar Styles */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px; /* Slightly wider sidebar */
+    height: 100%;
+    background-color: #2f3e46;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+}
+
+#sidebar a {
+    display: block;
+    color: #d1e8e2;
+    padding: 18px; /* Slightly larger padding for links */
+    text-decoration: none;
+    font-size: 18px; /* Larger font size */
+}
+
+#sidebar a:hover {
+    background-color: #354f52;
+}
+
+/* Main Content */
+#dashboard {
+    margin-left: 240px; /* Adjust margin to fit wider sidebar */
+    padding: 30px; /* Increased padding for main content */
+}
+
+/* Chart Wrapper */
+.chart-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
+    gap: 30px; /* Increased gap between containers */
+    max-width: 1800px; /* Increased max-width */
+    margin: 0 auto;
+}
+
+/* Chart Containers */
+.chart-container {
+    background-color: #fff;
+    border-radius: 10px; /* More rounded corners */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
+    padding: 40px; /* Increased padding */
+    max-width: 750px; /* Larger container width */
+    height: 550px; /* Larger container height */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+canvas {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100%; /* Ensure it fits within container */
+    max-height: 500px; /* Increased chart height */
+}
+
+/* Centering navigation buttons */
+.chart-container .nav-buttons {
+    position: relative;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px; /* More space below buttons */
+}
+
+button {
+    background-color: #8d99ae;
+    border: none;
+    color: white;
+    padding: 10px 15px; /* Larger buttons */
+    font-size: 16px; /* Increased font size */
+    cursor: pointer;
+    border-radius: 6px; /* More rounded buttons */
+    margin: 0 10px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #6c757d;
+}
+
+button:focus {
+    outline: none;
+}
+
+#displayUtilityMonth, #displayExpenseMonth {
+    font-size: 18px; /* Larger font size for month display */
+    font-weight: bold;
+    margin: 0 15px; /* Increased spacing between buttons */
+}
+
+/* Gas Chart centered more */
+.chart-container[style*="grid-column: span 2;"] {
+    justify-content: center; /* Center the gas chart content */
+    text-align: center; /* Ensure chart is centered */
+}
+

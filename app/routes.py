@@ -5,16 +5,15 @@ from datetime import datetime
 
 bp = Blueprint('routes', __name__)      # Creating a blueprint named routes
 
-def get_expense_data(selected_month):
+def get_expense_data(selected_month, current_year):
     """
     Helper function to get expense data for a given month.
 
     Returns:
     3 lists containing the dates, expense values, and the breakdown of each item.
     """
-
-    # Extracts/Orders the data whose month is equal to the selected month
-    expense_data = Expense.query.filter(db.extract('month', Expense.date) == selected_month).order_by(Expense.date).all() 
+    # Extracts and orders data whose month is equal to the selected month and current year
+    expense_data = Expense.query.filter(db.extract('month', Expense.date) == selected_month, db.extract('year', Expense.date) == current_year).order_by(Expense.date).all()   
 
     # Making arrays of dates prices and description
     expense_dates = [expense.date.strftime('%m/%d') for expense in expense_data]
@@ -39,47 +38,9 @@ def get_expense_data(selected_month):
 
     return expense_date_labels, expense_total_values, expense_breakdown
 
-@bp.route('/')
-def home():
-    """
-    Extracts information from each database and creates lists which are used to create different graphs in home.html.
-
-    Returns:
-    A rendered home page with different graphs using the different lists from each database analysing spending from each of the routes.
-    """
-    selected_month = int(request.args.get('month', datetime.now().month))       # Int of the selected month which is used to handle the functionality of the month selector on the graphs
-
-    # # Expense Database
-    # expense_data = Expense.query.filter(db.extract('month', Expense.date) == selected_month).order_by(Expense.date).all()   # Extracts/Orders the data whose month is equal to the selected month
-
-    # # Making arrays of dates prices and description
-    # expense_dates = [expense.date.strftime('%m/%d') for expense in expense_data]
-    # expense_values = [expense.price for expense in expense_data]
-    # expense_descriptions = [expense.description for expense in expense_data]
-
-    # # Combines the expenses with the same date
-    # # If there is an entry for that date, add to existing total and item description else make a new entry
-    # # Use the date as the key and the price/description as its values
-    # expense_dict = {}
-    # for date, price, description in zip(expense_dates, expense_values, expense_descriptions):       # Zip the lists together to form tuples in the format (date, price, description)
-    #     if date in expense_dict:
-    #         expense_dict[date]['total'] += price
-    #         expense_dict[date]['items'].append(f"{description}: ${price:.2f}")      
-    #     else:
-    #         expense_dict[date] = {'total': price, 'items': [f"{description}: ${price:.2f}"]}     
-
-    # # Separate the formatted data from the dictionary into lists for chart creation
-    # expense_date_labels = list(expense_dict.keys())
-    # expense_total_values = [value['total'] for value in expense_dict.values()]
-    # expense_breakdown = [value['items'] for value in expense_dict.values()]     # For the tooltip message to display what made up the total cost
-
-
-    expense_date_labels, expense_total_values, expense_breakdown =  get_expense_data(selected_month)
-
-    # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    # Utility Database
-
-    utility_data = Utility.query.filter(db.extract('month', Utility.electric_start_date) == int(selected_month)).all()          # Extracting all entries of the selected month
+def get_utility_data(selected_month, current_year):
+    # Extracting all entries of the selected month and from this year
+    utility_data = Utility.query.filter(db.extract('month', Utility.electric_start_date) == int(selected_month), db.extract('year', Utility.electric_start_date) == current_year).all()          
 
     # Converts the strings to floats and sums it up
     # Workaround: Usually each entry is just 1 number but to not pass it as an array we use the sum() to make it into a number 
@@ -88,49 +49,60 @@ def home():
     internet = sum([float(utility.internet) for utility in utility_data])
 
     # Lists for chart creation
-    pie_chart_labels = ['Water', 'Internet', 'Electric']
-    pie_chart_values = [water, internet, electric]
+    utility_labels = ['Water', 'Internet', 'Electric']
+    utility_values = [water, internet, electric]
 
-    # --------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    # Gas Database
+    return utility_labels, utility_values
 
-    # db.extract('month', Gas.date) extracts the month from gas.date and labels those entries with month
-    # db.func.sum(Gas.price) sums up all the gas prices from that month and labels it total spending
-    # group_by(db.extract('month', Gas.date)).all() allows me to retrieve all the entries with the same month together 
-    gas_data = db.session.query(db.extract('month', Gas.date).label('month'), db.func.sum(Gas.price).label('total_spending')).group_by(db.extract('month', Gas.date)).all()
+def get_gas_data(current_year):
+    gas_data = Gas.query.filter(db.extract('year', Gas.date) == current_year).all()     # Filter entries by this year
+    total_spending_dict = {}
 
-    # Lists for chart creation
-    month_names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    months = [int(record.month) for record in gas_data]     # List of months from the database as ints 
-    gas_month_labels = [month_names[month-1] for month in months]   # List of the months that are in the database as strings 
-    gas_total_spending = [record.total_spending for record in gas_data]    
+    # Loop through the data and sum up all gas entries for each month
+    for gas in gas_data:
+        month = int(gas.date.strftime('%m'))
+        if month in total_spending_dict:
+            total_spending_dict[month] += float(gas.price)
+        else:
+            total_spending_dict[month] = float(gas.price)
+
+    # This is to ensure that the value is matched up to the correct month. If we had used list() it reordered the values and didnt associate it to the right month
+    gas_total_spending = [total_spending_dict.get(month, 0.0) for month in range(1,13)] 
+    return gas_total_spending   
+
+
+@bp.route('/')
+def home():
+    """
+    Calls each database helper function and returns the lists of information used to render home.html
+    """
+    # Expense and Utility will have their own separate select_month because before they were sharing the same month but when clicking on the forms it was indexing wrong into month_names
+    # and causing it to display the incorrect month 
+    expense_selected_month = int(request.args.get('expense_month', datetime.now().month))      
+    utility_selected_month = int(request.args.get('utility_month', datetime.now().month))      
+
+    month_list = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    current_month = datetime.now().month
+    year_to_date_month_list = month_list[:current_month]
+    current_year = datetime.now().year
+
+    # Calling helper functions of each database to get the lists to render home.html 
+    expense_date_labels, expense_total_values, expense_breakdown = get_expense_data(expense_selected_month, current_year)
+    utility_labels, utility_values = get_utility_data(utility_selected_month, current_year)
+    gas_total_spending = get_gas_data(current_year)
 
     return render_template(
         'home.html',
-        selected_month=selected_month,
-        month_names=month_names, 
-        gas_month_labels=gas_month_labels, 
+        year_to_date_month_list=year_to_date_month_list, 
         gas_total_spending=gas_total_spending, 
-        pie_chart_values=pie_chart_values,
-        pie_chart_labels=pie_chart_labels,
+        utility_values=utility_values,
+        utility_labels=utility_labels,
+        utility_selected_month=utility_selected_month,
         expense_date_labels=expense_date_labels,
         expense_total_values=expense_total_values,
-        expense_breakdown = expense_breakdown
+        expense_breakdown=expense_breakdown,
+        expense_selected_month=expense_selected_month
     )
-
-    # return jsonify(
-    #     selected_month=selected_month,
-    #     month_names=month_names, 
-    #     gas_month_labels=gas_month_labels, 
-    #     gas_total_spending=gas_total_spending, 
-    #     pie_chart_values=pie_chart_values,
-    #     pie_chart_labels=pie_chart_labels,
-    #     expense_date_labels=expense_date_labels,
-    #     expense_total_values=expense_total_values,
-    #     expense_breakdown = expense_breakdown
-    # )
-
-
 
 @bp.route('/utilities', methods=['GET', 'POST'])
 def add_utilities():
@@ -272,9 +244,43 @@ def redraw_expense_chart():
     Returns the expense data for the selected month in JSON format for the AJAX request whenever the right/left arrows are pressed
     """
     selected_month = int(request.args.get('month', datetime.now().month))
-    expense_date_labels, expense_total_values, expense_breakdown =  get_expense_data(selected_month)
+    current_year = datetime.now().year
+    expense_date_labels, expense_total_values, expense_breakdown =  get_expense_data(selected_month, current_year)
     return jsonify({
         'expense_date_labels': expense_date_labels,
         'expense_total_values': expense_total_values, 
         'expense_breakdown': expense_breakdown
     })
+
+@bp.route('/redraw_utility_chart', methods=['GET'])
+def redraw_utility_chart():
+    """
+    Returns the utility data for the selected month in JSON format for the AJAX request whenever the right/left arrows are pressed
+    """
+    selected_month = int(request.args.get('month', datetime.now().month))
+    current_year = datetime.now().year
+    utility_labels, utility_values = get_utility_data(selected_month, current_year)
+    return jsonify({
+        'utility_labels': utility_labels,
+        'utility_values': utility_values
+    })
+
+@bp.route('/print_expense_entries')
+def print_entries():
+    # Query all entries in the Gas table
+    expense_entries = Expense.query.all()
+
+    # Create a list of dictionaries to represent each gas entry
+    expense_entries_list = [
+        {
+            "id": entry.id,
+            "station": entry.description,
+            "price": entry.price,
+            "date": entry.date.strftime('%Y-%m-%d'),  # Format the date
+            "card_used": entry.card_used
+        }
+        for entry in expense_entries
+    ]
+
+    # Return the list as a JSON response
+    return jsonify(expense_entries_list)
