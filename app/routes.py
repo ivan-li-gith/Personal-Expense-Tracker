@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from app.models import Utility, Expense, Gas
 from app import db
 from datetime import datetime
+import requests
 
 bp = Blueprint('routes', __name__)      # Creating a blueprint named routes
 
@@ -69,6 +70,22 @@ def get_gas_data(current_year):
     # This is to ensure that the value is matched up to the correct month. If we had used list() it reordered the values and didnt associate it to the right month
     gas_total_spending = [total_spending_dict.get(month, 0.0) for month in range(1,13)] 
     return gas_total_spending   
+
+def fetch_stock_data(stock_symbol):
+    api_key = 'CFW0GZBCVRUJ7Y4G'
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stock_symbol}&interval=5min&apikey={api_key}'
+    response = requests.get(url)
+    data = response.json()
+
+    time = data['Time Series (5min)']
+    latest_timestamp = list(time.keys())[0]
+
+
+    current_price = time[latest_timestamp]['4. close']
+    return {'symbol': stock_symbol, 'price': current_price, 'timestamp': latest_timestamp}
+
+
+
 
 
 @bp.route('/')
@@ -264,6 +281,16 @@ def redraw_utility_chart():
         'utility_labels': utility_labels,
         'utility_values': utility_values
     })
+
+@bp.route('/stock_tracker', methods=['GET', 'POST'])
+def stock_tracker():
+    if request.method == 'POST':
+        stock_symbol = request.form.get('symbol')
+        num_shares = request.form.get('shares')
+        stock_data = fetch_stock_data(stock_symbol)
+
+        return render_template('stock_tracker.html', stock=stock_data, shares=num_shares)
+    return render_template('stock_tracker.html')
 
 @bp.route('/print_expense_entries')
 def print_entries():
