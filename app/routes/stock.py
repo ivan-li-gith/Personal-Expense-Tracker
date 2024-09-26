@@ -7,34 +7,43 @@ import yfinance as yf
 stock_bp = Blueprint('stock', __name__)
 
 def fetch_stock_data(stock_symbol):
-    stock = yf.Ticker(stock_symbol)
-    stock_info = stock.history(period="1d")  # Fetch daily stock data
+    """
+    Takes in a symbol and uses the yfinance library to look up that stock and gets the closing price
+
+    Returns: A dictionary with the stock name and closing price
+    """
+
+    stock = yf.Ticker(stock_symbol)     # Creates an instance of Ticker which will contain data about that stock
+    stock_data = stock.history(period="1d")     # Gets daily stock data 
     
-    if stock_info.empty:
-        raise ValueError(f"No data found for symbol: {stock_symbol}")
+    # Checks to see if the symbol is valid
+    if stock_data.empty:
+        raise ValueError(f"Invalid or No data for: {stock_symbol}")
     
-    latest_data = stock_info.iloc[-1]  # Get the latest row of data
-    current_price = latest_data['Close']  # Use the 'Close' column for the current price
+    recent_data = stock_data.iloc[-1]       # Goes into the stock_data dataframe and gets data from the last row which is the most recent day 
+    current_price = recent_data['Close']        # Gets closing price of stock 
     return {'symbol': stock_symbol, 'price': current_price}
 
 @stock_bp.route('/stock_tracker', methods=['GET', 'POST'])
 def stock_tracker():
+    """
+    Extracts the stock and shares from the form and adds it as a new Stock object into the database.
+
+    Returns: A rendered template of stock.html with the recently added data.
+    """
+
     if request.method == 'POST':
-        stock_symbol = request.form.get('symbol')
-        num_shares = request.form.get('shares')
+        stock_symbol = request.form.get('stock_symbol')
+        num_shares = request.form.get('num_shares')
+        purchase_price = request.form.get('purchase_price')
 
-        try:
-            stock_data = fetch_stock_data(stock_symbol)
-        except ValueError as e:
-            return f"Error: {e}", 400  # Handle invalid symbols or no data
-
-        # Add the stock to the database
         new_stock = Stock(
             symbol=stock_symbol,
             shares=num_shares,
             purchase_price=float(stock_data['price']) if stock_data['price'] is not None else 0,
             last_updated=datetime.now()
         )
+
         db.session.add(new_stock)
         db.session.commit()
 
