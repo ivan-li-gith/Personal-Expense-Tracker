@@ -9,11 +9,11 @@
     <h2>Stock Tracker</h2>
 
     <div id="sidebar">
-        <a href="{{url_for('routes.home')}}">Dashboard</a>
-        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
-        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
-        <a href="{{url_for('routes.add_gas')}}">Gas</a>
-        <a href="{{url_for('routes.stock_tracker')}}">Stock Tracker</a>
+        <a href="{{url_for('dashboard.dashboard')}}">Dashboard</a>
+        <a href="{{url_for('utilities.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('expenses.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('gas.add_gas')}}">Gas</a>
+        <a href="{{url_for('stock.stock_tracker')}}">Stock Tracker</a>
     </div>
 
     <form method="POST">
@@ -24,11 +24,32 @@
         <button type="submit">Track Stock</button>
     </form>
     
-    {% if stock %}
-    <h3>{{ stock.symbol }} - {{ stock.price }}</h3>
-    <p>Shares: {{ shares }}</p>
-    <!-- Add gains/losses calculation display here -->
-    {% endif %}
+    <h3>Your Portfolio</h3>
+    <table>
+        <tr>
+            <th>Stock Symbol</th>
+            <th>Shares</th>
+            <th>Purchase Price</th>
+            <th>Current Price</th>
+            <th>Gain/Loss</th>
+        </tr>
+        {% for stock in stocks %}
+        <tr>
+            <td>{{ stock.symbol }}</td>
+            <td>{{ stock.shares }}</td>
+            <td>{{ stock.purchase_price }}</td>
+            <td>{{ stock.current_price }}</td>
+            <td>
+                {% if stock.current_price is not none and stock.purchase_price is not none %}
+                    {{ (stock.current_price - stock.purchase_price) * stock.shares }}
+                {% else %}
+                    N/A  <!-- Display 'N/A' or some other placeholder if prices are not available -->
+                {% endif %}
+            </td>
+            
+        </tr>
+        {% endfor %}
+    </table>
     
 </body>
 </html>

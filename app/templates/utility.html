@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utility Splitter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='utility.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/utility.css') }}">
 
 </head>
 <body>
     <div id="title">
         <h1>Utility Divider</h1>
     </div>
-
+    
     <div id="sidebar">
-        <a href="{{url_for('routes.home')}}">Dashboard</a>
-        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
-        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
-        <a href="{{url_for('routes.add_gas')}}">Gas</a>
+        <a href="{{url_for('dashboard.dashboard')}}">Dashboard</a>
+        <a href="{{url_for('utilities.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('expenses.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('gas.add_gas')}}">Gas</a>
+        <a href="{{url_for('stock.stock_tracker')}}">Stock Tracker</a>
     </div>
 
     <div id="main-container">

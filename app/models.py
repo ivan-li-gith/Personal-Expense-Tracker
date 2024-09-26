@@ -32,3 +32,16 @@ class Gas(db.Model):
     price = db.Column(db.Float, nullable=False)
     card_used = db.Column(db.String(100), nullable=False)
     date = db.Column(db.Date, nullable=False) 
+
+class Stock(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    symbol = db.Column(db.String(10), nullable=False)
+    shares = db.Column(db.Float, nullable=False)
+    purchase_price = db.Column(db.Float, nullable=False)
+    current_price = db.Column(db.Float, nullable=True)
+    last_updated = db.Column(db.DateTime, nullable=True)
+
+
+    
+
+

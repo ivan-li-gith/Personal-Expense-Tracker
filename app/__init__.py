@@ -22,11 +22,17 @@ def create_app():
     with app.app_context():
 
         #blueprint is used to organize all the routes
-        from app.routes import bp as routes_bp
-        app.register_blueprint(routes_bp)
-
-        # creating the database tables 
-        # db.create_all()
+        from app.routes.dashboard import dashboard_bp        
+        from app.routes.utility import utilities_bp
+        from app.routes.expense import expenses_bp
+        from app.routes.gas import gas_bp
+        from app.routes.stock import stock_bp        
+        
+        app.register_blueprint(dashboard_bp)
+        app.register_blueprint(utilities_bp)
+        app.register_blueprint(expenses_bp)
+        app.register_blueprint(gas_bp)
+        app.register_blueprint(stock_bp)
 
     return app
 

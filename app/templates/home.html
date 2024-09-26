@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Expense Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>        <!-- To add the data labels for the pie chart -->
 </head>
@@ -14,11 +14,11 @@
     </div>
 
     <div id="sidebar">
-        <a href="{{url_for('routes.home')}}">Dashboard</a>
-        <a href="{{url_for('routes.add_utilities')}}">Utilities</a>
-        <a href="{{url_for('routes.add_expense')}}">Add Expense</a>
-        <a href="{{url_for('routes.add_gas')}}">Gas</a>
-        <a href="{{url_for('routes.stock_tracker')}}">Stock Tracker</a>
+        <a href="{{url_for('dashboard.dashboard')}}">Dashboard</a>
+        <a href="{{url_for('utilities.add_utilities')}}">Utilities</a>
+        <a href="{{url_for('expenses.add_expense')}}">Add Expense</a>
+        <a href="{{url_for('gas.add_gas')}}">Gas</a>
+        <a href="{{url_for('stock.stock_tracker')}}">Stock Tracker</a>
     </div>
 
     <div id="dashboard">
