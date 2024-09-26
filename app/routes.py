@@ -73,11 +73,11 @@ def get_gas_data(current_year):
 
 def fetch_stock_data(stock_symbol):
     api_key = 'CFW0GZBCVRUJ7Y4G'
-    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stock_symbol}&interval=5min&apikey={api_key}'
+    url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol={stock_symbol}&interval=1min&apikey={api_key}'
     response = requests.get(url)
     data = response.json()
 
-    time = data['Time Series (5min)']
+    time = data['Time Series (1min)']
     latest_timestamp = list(time.keys())[0]
 
 
