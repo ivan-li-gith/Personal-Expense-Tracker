@@ -41,6 +41,13 @@ class Stock(db.Model):
     current_price = db.Column(db.Float, nullable=True)
     last_updated = db.Column(db.DateTime, nullable=True)
 
+class Investment_History(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False) 
+    eod_initial_investment = db.Column(db.Float, nullable=False)
+    eod_investment = db.Column(db.Float, nullable=False)
+    percent_diff = db.Column(db.Float, nullable=False)
+
 
     
 

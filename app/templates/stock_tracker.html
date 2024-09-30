@@ -4,52 +4,78 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h2>Stock Tracker</h2>
-
     <div id="sidebar">
         <a href="{{url_for('dashboard.dashboard')}}">Dashboard</a>
         <a href="{{url_for('utilities.add_utilities')}}">Utilities</a>
         <a href="{{url_for('expenses.add_expense')}}">Add Expense</a>
         <a href="{{url_for('gas.add_gas')}}">Gas</a>
-        <a href="{{url_for('stock.stock_tracker')}}">Stock Tracker</a>
+        <a href="{{url_for('stock.add_stock')}}">Stock Tracker</a>
     </div>
 
-    <form method="POST">
-        <label for="symbol">Stock Symbol:</label>
+    <div class="chart-container">
+        <h2>Investing</h2>
+        <canvas id="stockChart"></canvas>
+    </div>
+
+    <form id="stock_form" method="POST">
+        <label for="symbol">Symbol:</label>
         <input type="text" id="symbol" name="symbol" required>
-        <label for="shares">Shares Purchased:</label>
-        <input type="number" id="shares" name="shares" required>
-        <button type="submit">Track Stock</button>
+
+        <label for="shares">Shares:</label>
+        <input type="number" id="shares" name="shares" step="0.01" required>
+
+        <label for="purchase_price">Purchase Price:</label>
+        <input type="number" id="purchase_price" name="purchase_price" step="0.01" required>
+        
+        <button type="submit">Add Stock</button>
     </form>
     
-    <h3>Your Portfolio</h3>
-    <table>
-        <tr>
-            <th>Stock Symbol</th>
-            <th>Shares</th>
-            <th>Purchase Price</th>
-            <th>Current Price</th>
-            <th>Gain/Loss</th>
-        </tr>
-        {% for stock in stocks %}
-        <tr>
-            <td>{{ stock.symbol }}</td>
-            <td>{{ stock.shares }}</td>
-            <td>{{ stock.purchase_price }}</td>
-            <td>{{ stock.current_price }}</td>
-            <td>
-                {% if stock.current_price is not none and stock.purchase_price is not none %}
-                    {{ (stock.current_price - stock.purchase_price) * stock.shares }}
-                {% else %}
-                    N/A  <!-- Display 'N/A' or some other placeholder if prices are not available -->
-                {% endif %}
-            </td>
-            
-        </tr>
-        {% endfor %}
-    </table>
+
+    <div id="portfolioSummary">
+        <h3>Your Portfolio</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Stock</th>
+                    <th>Shares</th>
+                    <th>Purchase Price</th>
+                    <th>Current Price</th>
+                    <th>Gain/Loss</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody id="stockTable">
+                {% for stock in stocks %}
+                <tr>
+                    <td>{{ stock.symbol }}</td>
+                    <td>{{ "%.2f"|format(stock.shares) }}</td>
+                    <td>{{ stock.purchase_price }}</td>
+                    <td>{{ stock.current_price }}</td>
+                    <td>{{ "%.2f"|format((stock.current_price - stock.purchase_price) * stock.shares) }}</td>
+                    <td>{{ "%.2f"|format(((stock.current_price - stock.purchase_price)/ stock.purchase_price) * 100 ) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const dateList = {{ date_list | tojson }};
+        const eodInitialInvestmentList = {{ eod_initial_investment_list | tojson }};
+        const eodInvestmentList = {{ eod_investment_list | tojson }};
+        const percentDiff = {{ percent_diff_list | tojson }};
+
+
+        console.log("dateList from Flask end: ", dateList);
+        console.log("eodInitialInvestmentList from Flask end: ", eodInitialInvestmentList);
+        console.log("eodInvestmentList from Flask end: ", eodInvestmentList);
+        console.log("percentDiff from Flask end: ", percentDiff);
+    </script>
     
+    <script src="{{ url_for('static', filename='js/stock_chart.js') }}"></script>
+
 </body>
 </html>
