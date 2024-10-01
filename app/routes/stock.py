@@ -9,6 +9,7 @@ stock_bp = Blueprint('stock', __name__)
 def get_stock_data(symbol):
     """
     Takes in a symbol and uses the yfinance library to look up that stock and gets the closing price
+
     Returns: A dictionary with the stock name and closing price
     """
     stock = yf.Ticker(symbol)                               # Creates an instance of Ticker which will contain data about that stock
@@ -17,16 +18,43 @@ def get_stock_data(symbol):
     current_price = round(recent_data['Close'], 2)          # Gets closing price of stock 
     return {'symbol': symbol, 'price': current_price}
 
+def get_stock_sectors():
+    """
+    Goes through stock db and gets the sector information from each stock
+    
+    Returns: A list of sectors, a list of companies in those sectors, a list of percentages of each sector breakdown
+    """
+    stock_db = Stock.query.all()
+    
+    # Loops through the db, grabs each stocks sector, and adds it into the dict. If the sector exists append stock into the list
+    sector_dict = {}
+    for entry in stock_db:
+        stock = yf.Ticker(entry.symbol)
+        sector = stock.info.get('sector', 'Unknown')
+
+        if sector in sector_dict:
+            sector_dict[sector].append(entry.symbol)
+        else:
+            sector_dict[sector] = [entry.symbol]
+
+    sector_list = list(sector_dict.keys())      # List of sector names 
+
+    # A list of stocks from each sector where each index is a string of the companies in that sector
+    stocks_in_sector_list = [", ".join(stock_list) for stock_list in sector_dict.values()]
+
+    # A list of the percentages each sector makes of the portfolio
+    sector_percentage_list = [len(stock_list)/ len(stock_db) * 100 for stock_list in sector_dict.values()]
+
+    return sector_list, stocks_in_sector_list, sector_percentage_list
 
 def update_investment_history():
     current_date = datetime.now().date()
-
     # stock_db = []
     # for stock in Stock.query.all():
     #     if stock.last_updated.date() == current_date:
     #         stock_db.append(stock)
 
-    stock_db = [stock for stock in Stock.query.all() if stock.last_updated.date() == current_date]      # Cleaner way to write whats above
+    stock_db = [stock for stock in Stock.query.all() if stock.last_updated.date() == current_date]
 
     # No entries in db with todays current date return empty lists
     if len(stock_db) == 0:  
@@ -104,6 +132,7 @@ def add_stock():
             db.session.commit()
     
         date_list, eod_initial_investment_list, eod_investment_list, percent_diff_list = update_investment_history()
+        sector_list, stocks_in_sector_list, sector_percentage_list = get_stock_sectors()
 
         # Check if it's an AJAX request by looking for the `ajax=true` parameter
         if request.args.get('ajax') == 'true':
@@ -111,7 +140,10 @@ def add_stock():
                 'date_list': date_list,
                 'eod_initial_investment_list': eod_initial_investment_list,
                 'eod_investment_list': eod_investment_list,
-                'percent_diff_list': percent_diff_list
+                'percent_diff_list': percent_diff_list,
+                'sector_list': sector_list,
+                'stocks_in_sector_list': stocks_in_sector_list,
+                'sector_percentage_list': sector_percentage_list
             })
         else:
             return render_template(
@@ -120,11 +152,15 @@ def add_stock():
                 date_list=date_list,
                 eod_initial_investment_list=eod_initial_investment_list, 
                 eod_investment_list=eod_investment_list, 
-                percent_diff_list=percent_diff_list
+                percent_diff_list=percent_diff_list,
+                sector_list=sector_list,
+                stocks_in_sector_list=stocks_in_sector_list,
+                sector_percentage_list=sector_percentage_list
             )
     
     stock_db = Stock.query.all()
     date_list, eod_initial_investment_list, eod_investment_list, percent_diff_list = update_investment_history()
+    sector_list, stocks_in_sector_list, sector_percentage_list = get_stock_sectors()
 
     # Update stock prices if older than 1 hour and calculate total investments
     # for entry in stock_db:
@@ -141,7 +177,10 @@ def add_stock():
         date_list=date_list,
         eod_initial_investment_list=eod_initial_investment_list, 
         eod_investment_list=eod_investment_list, 
-        percent_diff_list=percent_diff_list
+        percent_diff_list=percent_diff_list,
+        sector_list=sector_list,
+        stocks_in_sector_list=stocks_in_sector_list,
+        sector_percentage_list=sector_percentage_list
     )
 
 @stock_bp.route('/update_portfolio', methods=['GET'])
@@ -162,7 +201,6 @@ def updatePortfolio():
     #         'percentage': round(((entry.current_price - entry.purchase_price) / entry.purchase_price) * 100, 2)
     #     })
 
-    # Cleaner way to write whats above
     stock_data_json = [{
         'symbol': entry.symbol,
         'shares': entry.shares,
@@ -180,18 +218,6 @@ def update_stock_chart():
     heonstly this is to handle multiple entries of the same day. 
     An AJAX request is sent to this route to update the stock chart with the most recent entries from the database. It grabs 
     """
-    # current_date = datetime.now()
-    # stock_db = Stock.query.all()
-    # updated_initial_investments = sum(entry.purchase_price * entry.shares for entry in stock_db)      # Calculating total initial investments
-    # updated_total_investments = sum(entry.current_price * entry.shares for entry in stock_db)         # Calculating total investments from current price of each stock
-
-    # # total_investments_ytd[0] = 53000
-
-    # # If the last entry is the same day as today, update the lists with the updated values 
-    # if ytd_dates[-1] == current_date:
-    #     total_initial_investments =  updated_initial_investments
-    #     total_investments_ytd[-1] = updated_total_investments
-
     date_list, eod_initial_investment_list, eod_investment_list, percent_diff_list = update_investment_history()
     return jsonify({
         'date_list': date_list,

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>        <!-- To add the data labels for the pie chart -->
 </head>
 <body>
     <div id="sidebar">
@@ -17,7 +18,21 @@
 
     <div class="chart-container">
         <h2>Investing</h2>
-        <canvas id="stockChart"></canvas>
+        <h2>
+            {% if eod_investment_list|length > 0 %}
+                ${{ "%.2f"|format(eod_investment_list[-1]) }}   
+            {% endif %} 
+        </h2>
+        <h3>
+            {% if eod_investment_list|length > 1 %}            
+                ${{ eod_investment_list[-1] - eod_investment_list[-2] }} {{ percent_diff_list[-1] }}% Today
+            {% else %}
+                $0 0% Today
+            {% endif %}
+        </h3>
+        <canvas id="stockInvestmentChart"></canvas>
+        <canvas id="stockSectorChart"></canvas>
+
     </div>
 
     <form id="stock_form" method="POST">
@@ -68,11 +83,18 @@
         const eodInvestmentList = {{ eod_investment_list | tojson }};
         const percentDiff = {{ percent_diff_list | tojson }};
 
+        const sectorList = {{ sector_list | tojson }};
+        const stocksInSectorList = {{ stocks_in_sector_list | tojson }};
+        const sectorPercentageList = {{ sector_percentage_list | tojson }};
 
         console.log("dateList from Flask end: ", dateList);
         console.log("eodInitialInvestmentList from Flask end: ", eodInitialInvestmentList);
         console.log("eodInvestmentList from Flask end: ", eodInvestmentList);
         console.log("percentDiff from Flask end: ", percentDiff);
+        console.log("sectorList from Flask end: ", sectorList);
+        console.log("stocksInSectorList from Flask end: ", stocksInSectorList);
+        console.log("sectorPercentageList from Flask end: ", sectorPercentageList);
+
     </script>
     
     <script src="{{ url_for('static', filename='js/stock_chart.js') }}"></script>
